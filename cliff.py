@@ -28,12 +28,23 @@ async def on_message(message):
         # TODO list active tickets
         logtime('TODO List active tickets here')
     elif commands[0] == 'resolve':
-        logtime('TODO resolve ticket here')
+        ticket_mark_resolved(ticket_id=commands[1], user=message.author)
+        await channel.send(f'Ticket {commands[1]} marked as resolved by {message.author.name}')
+    elif commands[0] == 'create':
+        ticket_create(ticket_name=commands[1], user=message.author)
+        await channel.send(f'Ticket {commands[1]} created by {message.author.name}')
     else:
         await channel.send(f'unknown command `{commands[0]}`')
 
-
 def logtime(message):
     print(f'{datetime.datetime.now()} {message}')
+
+def ticket_mark_resolved(ticket_id, user):
+    # TODO
+    pass
+
+def ticket_create(ticket_name, user):
+    # TODO
+    pass
 
 client.run(config['token'])
