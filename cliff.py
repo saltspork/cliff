@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 
-import discord, json, datetime, collections
+import discord, json, datetime, collections, sqlite3
 
 with open('config.json') as f:
     config = json.load(f, object_pairs_hook=collections.OrderedDict)
+
+con = sqlite3.connect('db.db')
 
 client = discord.Client()
 
@@ -27,23 +29,24 @@ async def on_message(message):
     if commands[0] == 'list':
         # TODO list active tickets
         logtime('TODO List active tickets here')
-    elif commands[0] == 'resolve':
-        ticket_mark_resolved(ticket_id=commands[1], user=message.author)
-        await channel.send(f'Ticket {commands[1]} marked as resolved by {message.author.name}')
     elif commands[0] == 'create':
-        ticket_create(ticket_name=commands[1], user=message.author)
+        ticket_create(guild=message.guild, user=message.author, ticket_name=commands[1])
         await channel.send(f'Ticket {commands[1]} created by {message.author.name}')
+    elif commands[0] == 'resolve':
+        ticket_mark_resolved(guild=message.guild, user=message.author, ticket_name=commands[1])
+        await channel.send(f'Ticket {commands[1]} marked as resolved by {message.author.name}')
     else:
         await channel.send(f'unknown command `{commands[0]}`')
 
 def logtime(message):
     print(f'{datetime.datetime.now()} {message}')
 
-def ticket_mark_resolved(ticket_id, user):
-    # TODO
-    pass
+def ticket_create(guild, user, ticket_name):
+    cur = con.cursor()
+    cur.execute("INSERT INTO tickets VALUES (?,?)", (guild.id, ticket_name))
+    con.commit()
 
-def ticket_create(ticket_name, user):
+def ticket_mark_resolved(guild, user, ticket_name):
     # TODO
     pass
 

@@ -1,0 +1,1 @@
+CREATE TABLE tickets (guild_id integer, ticket_name text);
