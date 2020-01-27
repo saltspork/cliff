@@ -16,9 +16,11 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    logtime(message)
+    if client.user not in message.mentions:
+        return
+    logtime(f'Mentioned in: {message.content}')
 
 def logtime(message):
-    print(f'{datetime.datetime.now()} {message.content}')
+    print(f'{datetime.datetime.now()} {message}')
 
 client.run(config['token'])
