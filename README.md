@@ -1,4 +1,7 @@
 ```
+# Make 'tha schema
+sqlite3 db.db < schema.sql
+
 # create a venv
 python3 -m venv venvdir
 
