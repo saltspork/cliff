@@ -41,9 +41,18 @@ async def on_message(message):
 def logtime(message):
     print(f'{datetime.datetime.now()} {message}')
 
-def ticket_create(guild, user, ticket_name):
+def ticket_create(guild, user, ticket_name, location=None):
     cur = con.cursor()
-    cur.execute("INSERT INTO tickets VALUES (?,?)", (guild.id, ticket_name))
+    cur.execute(
+        "INSERT INTO tickets VALUES (?, ?, ?, ?, ?, ?)",
+        (guild.id,
+         ticket_name,
+         1,
+         user.name,
+         location,
+         str(datetime.datetime.now()),
+        )
+    )
     con.commit()
 
 def ticket_mark_resolved(guild, user, ticket_name):
