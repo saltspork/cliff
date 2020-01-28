@@ -27,8 +27,8 @@ async def on_message(message):
     # Parse message as a command
     commands = message.content.split()[1:]
     if commands[0] == 'list':
-        # TODO list active tickets
-        logtime('TODO List active tickets here')
+        await tickets_show(message.guild, channel,
+                           only_active=(not (len(commands) > 1 and commands[1] == 'all')))
     elif commands[0] == 'create':
         ticket_create(guild=message.guild, user=message.author, ticket_name=commands[1])
         await channel.send(f'Ticket {commands[1]} created by {message.author.name}')
@@ -40,6 +40,49 @@ async def on_message(message):
 
 def logtime(message):
     print(f'{datetime.datetime.now()} {message}')
+
+def pad_to_size(s, n):
+    s = str(s)
+    return f'{s}{" " * max(0, n - len(s))}'
+
+async def tickets_show(guild, channel, only_active=True):
+    query = (
+        f'SELECT * FROM tickets WHERE guild_id = {guild.id}'
+        + (' AND active = 1' if only_active else '')
+    )
+    cur = con.cursor()
+
+    def fmt_row(row):
+        guild_id, ticket_name, active, author, location, datetime_created = row
+
+        if location is None:
+            location = '' 
+
+        # If datetime_created is an ISO 8601 string, try shortening it.
+        try:
+            dt = datetime.datetime.strptime(datetime_created, '%Y-%m-%d %H:%M:%S.%f')
+            dt = dt.strftime('%a %d/%m')
+        except ValueError:
+            # If that fails, just take the date-time as a string.
+            dt = str(datetime_created)
+        return (
+              '|' + pad_to_size(dt, 12)
+            + '|' + pad_to_size(ticket_name, 12)
+            + ('|' + pad_to_size(active, 7) if not only_active else '')
+            + '|' + pad_to_size(author, 11)
+            + '|' + pad_to_size(location, 10)
+            + '|'
+        )
+
+    table = (
+        '```'
+        + fmt_row(("Guild", "Ticket Name", "Active", "Creator", "Location", "Created at")) + '\n'
+        + '\n'.join([fmt_row(row) for row in cur.execute(query)])
+        + '```'
+    )
+
+    await channel.send(table)
+    con.commit()
 
 def ticket_create(guild, user, ticket_name, location=None):
     cur = con.cursor()
@@ -56,7 +99,11 @@ def ticket_create(guild, user, ticket_name, location=None):
     con.commit()
 
 def ticket_mark_resolved(guild, user, ticket_name):
-    # TODO
-    pass
+    cur = con.cursor()
+    cur.execute(
+        "UPDATE tickets SET active = 0 "
+        + f"WHERE guild_id = {guild.id} AND ticket_name = '{ticket_name}'"
+    )
+    con.commit()
 
 client.run(config['token'])
