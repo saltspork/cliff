@@ -26,7 +26,15 @@ async def on_message(message):
 
     # Parse message as a command
     commands = message.content.split()[1:]
-    if commands[0] == 'list':
+
+    if commands[0] == 'help':
+        await channel.send(
+            '_\n**available commands** (options wrapped in `[]`)\n'
+            + f'\t`@{client.user.name} list [all]`: list all active tickets (inactive also if `all`)\n'
+            + f'\t`@{client.user.name} create <ticket-name>`: create a new ticket\n'
+            + f'\t`@{client.user.name} resolve <ticket-name>`: resolve an active ticket'
+        )
+    elif commands[0] == 'list':
         await tickets_show(message.guild, channel,
                            only_active=(not (len(commands) > 1 and commands[1] == 'all')))
     elif commands[0] == 'create':
